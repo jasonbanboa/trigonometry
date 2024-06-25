@@ -45,21 +45,54 @@ const rectangle = {
   x: $canvas.width / 2 - w / 2, y: $canvas.height / 2 - h / 2, w, h,
 };
 const anchor = { x: rectangle.x + rectangle.w / 2, y: rectangle.y + rectangle.h / 2, size: 5 };
-const shift = Math.PI / 180 * -90
+const shift = Math.PI / 180 * -90;
+const mousePos = {
+  x: 0, y: 0,
+}
+let angle = 0;
+let isDragging = false;
+
+
+const getAnchorPath = () => {
+  const path = new Path2D();
+  path.arc(anchor.x, anchor.y - rectangle.h / 2 - 30, anchor.size, 0, Math.PI * 2)
+  return path;
+}
+
+const updateStats = () => {
+  const a = { x: anchor.x, y: anchor.y };
+  const b = { x: mousePos.x, y: mousePos.y };
+  const c = { x: mousePos.x, y: anchor.y }
+
+  const hypot = dist(b.x - a.x, b.y - a.y);
+  const opp = dist(c.x - b.x, c.y - b.y);
+  const adj = dist(a.x - c.x, a.y - c.y);
+  const theta = Math.atan2(b.y - a.y, b.x - a.x) - shift;
+  ctx.save();
+  ctx.font = '21px bold'
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`Hypotenuse: ${hypot}`, 100, 100)
+  ctx.fillText(`Adjacent: ${opp}`, 100, 130)
+  ctx.fillText(`Oppsite: ${adj}`, 100, 160)
+  ctx.fillText(`Theta: ${theta}`, 100, 190)
+  ctx.restore();
+}
 
 const rect = ({ x, y, w, h }) => {
   ctx.save();
   ctx.strokeRect(x, y, w, h);
   ctx.restore();
   ctx.beginPath();
+  if (!isDragging) {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('drag me to rotate!', anchor.x, anchor.y - rectangle.h / 2 - 50);
+  }
   ctx.arc(anchor.x, anchor.y - rectangle.h / 2 - 30, anchor.size, 0, Math.PI * 2);
   ctx.fill();
 }
-const arc = ({ x, y, size }) => {
-  
-}
 
-rect(rectangle);
 
 const trangulate = (offsetX, offsetY, draw) => {
   const a = { x: anchor.x, y: anchor.y };
@@ -90,27 +123,48 @@ const trangulate = (offsetX, offsetY, draw) => {
     ctx.restore();
   }
 
-  console.log(toDeg(thetaNormalized));
   return thetaNormalized;
 }
 
-let isDragging = false;
 
+rect(rectangle);
+updateStats();
+$canvas.onmousedown = ({ offsetX, offsetY }) => {
+  ctx.save();
+    ctx.translate(anchor.x, anchor.y)
+    ctx.rotate(angle);
+    ctx.translate(-anchor.x, -anchor.y)
+    isDragging = ctx.isPointInPath(getAnchorPath(), offsetX, offsetY);
+  ctx.restore();
+}
+$canvas.onmouseup = () => {
+  isDragging = false;
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+  ctx.save();
+    ctx.translate(anchor.x, anchor.y)
+    ctx.rotate(angle);
+    ctx.translate(-anchor.x, -anchor.y)
+    rect(rectangle);
+    ctx.restore();
+    updateStats();
+}
 $canvas.onmousemove = ({ offsetX, offsetY }) => {
-
-  // if (isDragging) {
+  mousePos.x = offsetX;
+  mousePos.y = offsetY;
+  if (isDragging) {
     ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-  
+    angle = trangulate(mousePos.x, mousePos.y, false);
+
     ctx.save();
     ctx.translate(anchor.x, anchor.y)
-    ctx.rotate(trangulate(offsetX, offsetY, false));
+    ctx.rotate(angle);
     ctx.translate(-anchor.x, -anchor.y)
     rect(rectangle);
     ctx.restore();
   
-    arc(anchor);
-    trangulate(offsetX, offsetY, true)
-  // }
+    trangulate(offsetX, offsetY, true);
+    updateStats();
+  }
 }
 
 </script>
