@@ -98,7 +98,7 @@ let isDragging = false;
 
 $canvas.onmousemove = ({ offsetX, offsetY }) => {
 
-  if (isDragging) {
+  // if (isDragging) {
     ctx.clearRect(0, 0, $canvas.width, $canvas.height);
   
     ctx.save();
@@ -110,7 +110,7 @@ $canvas.onmousemove = ({ offsetX, offsetY }) => {
   
     arc(anchor);
     trangulate(offsetX, offsetY, true)
-  }
+  // }
 }
 
 </script>
