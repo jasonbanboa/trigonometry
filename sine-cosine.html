@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sine cosine</title>
+</head>
+<body>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/mhd9FXYdf4s?si=pD969OFhTf3jZGmK" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <p>
+    Adjacent side = sin(theta) * hypot <br>
+    hypot === radius | hypot === Math.hypot(centerX - x, centerY - y)
+  </p>
+  <img src="./sohcahtoa.png" alt=""> <br>
+  <div style="display: flex">
+    <canvas id="canvas" width="700" height="700">
+    </canvas>
+    <figure style="background: #f8f8f8; padding: 1rem">
+      <figcaption>unit circle (cos(0), sin(0)) (adjacent, oppsite)</figcaption>
+      <img src="./sin-cos.png" alt="">
+    </figure>
+  </div>
+  
+<script>
+const ctx = canvas.getContext('2d');
+const step = Math.PI * 2 / 360;
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+// to make it a unit circle make the hypot to 1
+const hypot = 300;  // the hypot is the radius usually it is 1
+for (let i = 0; i < 360; i++) {
+  const theta = step * i;
+
+  Math.cos(theta) // how far away from the origin 
+  Math.sin(theta) // how far away from the origin 
+
+  const adjacent = Math.cos(theta) * hypot
+  const oppsite = Math.sin(theta) * hypot;
+  
+  const x = centerX + Math.cos(theta) * hypot;  // finding the adjacent side of the triangle
+  const y = centerY + Math.sin(theta) * hypot;  // finding the opposite side of the triangle
+
+  console.log(
+    'radius, hypot and the distance between x and y',
+    hypot, Math.hypot(centerX - x, centerY - y)
+  ); 
+
+  // pythagorean theorem (a^2 + b^2 = c^2)
+  // a ** 2 + b ** 2 === c ** 2
+  // opposite ** 2 + adjacent ** 2 === c ** 2
+  // sin(theta) ** 2 + cos(theta) ** 2 === hypot ** 2
+  // (Math.cos(theta) * hypot) is the length of the adjacent side (Math.sin(theta) * hypot) is the length of the opposite side
+  console.log(
+    'Pythagorean theorem',
+    hypot ** 2,  
+    ((Math.cos(theta) * hypot) ** 2 + (Math.sin(theta) * hypot) ** 2)
+  );
+   
+
+  ctx.beginPath();
+  ctx.arc(x, y, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.moveTo(centerX, centerY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+}
+
+ctx.beginPath();
+ctx.arc(centerX, centerY, hypot, 0, Math.PI * 2);
+ctx.stroke();
+
+
+</script>
+</body>
+</html>
