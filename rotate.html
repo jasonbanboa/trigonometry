@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * { box-sizing: border-box; padding: 0; margin: 0;}
+    body {overflow: hidden;}
+  </style>
+</head>
+<body>
+  <canvas id="$canvas"></canvas>
+<script>
+const dist = (x, y) => Math.hypot(x, y);
+const toDeg = (n) => 180 / Math.PI * n;
+const getTrangleSides = (segementAB, segementBC, segementCA) => {
+  // find the hypotenuse by finding the longest linesegment
+  const hypotenuse = Math.max(segementAB, segementBC, segementCA);
+  let adjacent;
+  let opposite;
+
+  if (hypotenuse === segementAB) {
+    adjacent = segementCA;
+    opposite = segementBC;
+  } else if (hypotenuse === segementBC) {
+    adjacent = segementAB;
+    opposite = segementCA;
+  } else if (hypotenuse === segementCA) {
+    adjacent = segementAB;
+    opposite = segementBC;
+  }
+  // adjacent and oppsite are relative to the hypotenuse
+  return { hypotenuse , adjacent, opposite };
+}
+
+
+$canvas.width = window.innerWidth;
+$canvas.height = window.innerHeight;
+
+const ctx = $canvas.getContext('2d');
+const h = 200;
+const w = 200;
+const rectangle = { 
+  x: $canvas.width / 2 - w / 2, y: $canvas.height / 2 - h / 2, w, h,
+};
+const anchor = { x: rectangle.x + rectangle.w / 2, y: rectangle.y + rectangle.h / 2, size: 5 };
+const shift = Math.PI / 180 * -90
+
+const rect = ({ x, y, w, h }) => {
+  ctx.save();
+  ctx.strokeRect(x, y, w, h);
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(anchor.x, anchor.y - rectangle.h / 2 - 30, anchor.size, 0, Math.PI * 2);
+  ctx.fill();
+}
+const arc = ({ x, y, size }) => {
+  
+}
+
+rect(rectangle);
+
+const trangulate = (offsetX, offsetY, draw) => {
+  const a = { x: anchor.x, y: anchor.y };
+  const b = { x: offsetX, y: offsetY };
+  const c = { x: offsetX, y: anchor.y }
+
+  const hypot = dist(b.x - a.x, b.y - a.y);
+  const opp = dist(c.x - b.x, c.y - b.y);
+  const adj = dist(a.x - c.x, a.y - c.y);
+  const theta = Math.atan2(b.y - a.y, b.x - a.x) - shift;
+
+  // Ensure theta is between 0 and 2 * PI
+  const thetaNormalized = theta < 0 ? theta + 2 * Math.PI : theta;
+  
+  if (draw) {
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(c.x, c.y);
+    ctx.closePath();
+    ctx.stroke();
+  
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(anchor.x, anchor.y, 10, 0, theta);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  console.log(toDeg(thetaNormalized));
+  return thetaNormalized;
+}
+
+let isDragging = false;
+
+$canvas.onmousemove = ({ offsetX, offsetY }) => {
+
+  if (isDragging) {
+    ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+  
+    ctx.save();
+    ctx.translate(anchor.x, anchor.y)
+    ctx.rotate(trangulate(offsetX, offsetY, false));
+    ctx.translate(-anchor.x, -anchor.y)
+    rect(rectangle);
+    ctx.restore();
+  
+    arc(anchor);
+    trangulate(offsetX, offsetY, true)
+  }
+}
+
+</script>
+</body>
+</html>

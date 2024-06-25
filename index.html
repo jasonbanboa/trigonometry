@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+<canvas id="canvas" width="500" height="500"></canvas>
+
+<script>
+const dist = (x, y) => Math.hypot(x, y);
+const toDeg = (n) => 180 / Math.PI * n;
+
+const ctx = canvas.getContext('2d');
+
+const drawPoint = ({x, y}, color, label) => {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'black';
+  ctx.fillText(label, x, y);
+  ctx.restore();
+}
+
+// right trangle
+const pointA = {x: 30, y: 50};
+const pointB = {x: 220, y: 50};
+const pointC = {x: 220, y: 160};
+
+// the hypot of this trangle is point3 to point 3
+
+ctx.beginPath();
+ctx.moveTo(pointA.x,pointA.y);
+ctx.lineTo(pointB.x,pointB.y);
+ctx.lineTo(pointC.x,pointC.y);
+ctx.closePath();
+ctx.stroke();
+
+const angleBoxSize = 10;
+ctx.beginPath();
+ctx.strokeRect(pointB.x - angleBoxSize, pointB.y, angleBoxSize, angleBoxSize)
+
+
+drawPoint(pointA, 'red', 'baseline');
+drawPoint(pointC, 'blue', 'mouseCoords');
+
+const segementAB = dist(pointB.x - pointA.x, pointB.y - pointA.y);
+const segementBC = dist(pointC.x - pointB.x, pointC.y - pointB.y);
+const segementCA = dist(pointA.x - pointC.x, pointA.y - pointC.y);
+
+
+const getTrangleSides = (segementAB, segementBC, segementCA) => {
+  // find the hypotenuse by finding the longest linesegment
+  const hypotenuse = Math.max(segementAB, segementBC, segementCA);
+  let adjacent;
+  let opposite;
+
+  if (hypotenuse === segementAB) {
+    adjacent = segementCA;
+    opposite = segementBC;
+  } else if (hypotenuse === segementBC) {
+    adjacent = segementAB;
+    opposite = segementCA;
+  } else if (hypotenuse === segementCA) {
+    adjacent = segementAB;
+    opposite = segementBC;
+  }
+  // adjacent and oppsite are relative to the hypotenuse
+  return { hypotenuse , adjacent, opposite };
+}
+
+const { hypotenuse, adjacent, opposite } = getTrangleSides(segementAB, segementBC, segementCA);
+
+const thetaAsin = Math.asin(opposite / hypotenuse);
+const thetaAcos = Math.acos(adjacent / hypotenuse);
+const thetaAtan = Math.atan(opposite / adjacent);
+
+console.log(`Theta (using asin) in degrees: ${toDeg(thetaAsin)}`);
+console.log(`Theta (using acos) in degrees: ${toDeg(thetaAcos)}`);
+console.log(`Theta (using atan) in degrees: ${toDeg(thetaAtan)}`);
+
+// Pythagorean theorem a^2 + b^2 = c^2
+console.log('prooving the Pythagorean theorem');
+console.log('adjacent ** 2 + opposite ** 2, hypotenuse ** 2', adjacent ** 2 + opposite ** 2, hypotenuse ** 2);
+console.log('adjacent ** 2 + opposite ** 2 === hypotenuse ** 2', adjacent ** 2 + opposite ** 2 === hypotenuse ** 2);
+
+
+</script>
+</body>
+</html>
+
