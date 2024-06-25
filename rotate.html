@@ -103,9 +103,6 @@ const trangulate = (offsetX, offsetY, draw) => {
   const opp = dist(c.x - b.x, c.y - b.y);
   const adj = dist(a.x - c.x, a.y - c.y);
   const theta = Math.atan2(b.y - a.y, b.x - a.x) - shift;
-
-  // Ensure theta is between 0 and 2 * PI
-  const thetaNormalized = theta < 0 ? theta + 2 * Math.PI : theta;
   
   if (draw) {
     ctx.beginPath();
@@ -123,7 +120,7 @@ const trangulate = (offsetX, offsetY, draw) => {
     ctx.restore();
   }
 
-  return thetaNormalized;
+  return theta;
 }
 
 
