@@ -7,13 +7,170 @@
 </head>
 <body>
   
-<canvas id="canvas" width="500" height="500"></canvas>
+<canvas id="visualization" width="500" height="500"></canvas>
+
+<canvas id="$canvas"></canvas>
 
 <script>
+
 const dist = (x, y) => Math.hypot(x, y);
 const toDeg = (n) => 180 / Math.PI * n;
+  
+const rotate = () => {
+  
+  const getTrangleSides = (segementAB, segementBC, segementCA) => {
+    // find the hypotenuse by finding the longest linesegment
+    const hypotenuse = Math.max(segementAB, segementBC, segementCA);
+    let adjacent;
+    let opposite;
 
-const ctx = canvas.getContext('2d');
+    if (hypotenuse === segementAB) {
+      adjacent = segementCA;
+      opposite = segementBC;
+    } else if (hypotenuse === segementBC) {
+      adjacent = segementAB;
+      opposite = segementCA;
+    } else if (hypotenuse === segementCA) {
+      adjacent = segementAB;
+      opposite = segementBC;
+    }
+    // adjacent and oppsite are relative to the hypotenuse
+    return { hypotenuse , adjacent, opposite };
+  }
+
+
+  $canvas.width = 700;
+  $canvas.height = 700;
+
+  const ctx = $canvas.getContext('2d');
+  const h = 200;
+  const w = 200;
+  const rectangle = { 
+    x: $canvas.width / 2 - w / 2, y: $canvas.height / 2 - h / 2, w, h,
+  };
+  const anchor = { x: rectangle.x + rectangle.w / 2, y: rectangle.y + rectangle.h / 2, size: 5 };
+  const shift = Math.PI / 180 * -90;
+  const mousePos = {
+    x: 0, y: 0,
+  }
+  let angle = 0;
+  let isDragging = false;
+
+
+  const getAnchorPath = () => {
+    const path = new Path2D();
+    path.arc(anchor.x, anchor.y - rectangle.h / 2 - 30, anchor.size, 0, Math.PI * 2)
+    return path;
+  }
+
+  const updateStats = () => {
+    const a = { x: anchor.x, y: anchor.y };
+    const b = { x: mousePos.x, y: mousePos.y };
+    const c = { x: mousePos.x, y: anchor.y }
+
+    const hypot = dist(b.x - a.x, b.y - a.y);
+    const opp = dist(c.x - b.x, c.y - b.y);
+    const adj = dist(a.x - c.x, a.y - c.y);
+    const theta = Math.atan2(b.y - a.y, b.x - a.x) - shift;
+    ctx.save();
+    ctx.font = '21px bold'
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`Hypotenuse: ${hypot}`, 100, 100)
+    ctx.fillText(`Adjacent: ${opp}`, 100, 130)
+    ctx.fillText(`Oppsite: ${adj}`, 100, 160)
+    ctx.fillText(`Theta: ${theta}`, 100, 190)
+    ctx.restore();
+  }
+
+  const rect = ({ x, y, w, h }) => {
+    ctx.save();
+    ctx.strokeRect(x, y, w, h);
+    ctx.restore();
+    ctx.beginPath();
+    if (!isDragging) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('drag me to rotate!', anchor.x, anchor.y - rectangle.h / 2 - 50);
+    }
+    ctx.arc(anchor.x, anchor.y - rectangle.h / 2 - 30, anchor.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+
+  const trangulate = (offsetX, offsetY, draw) => {
+    const a = { x: anchor.x, y: anchor.y };
+    const b = { x: offsetX, y: offsetY };
+    const c = { x: offsetX, y: anchor.y }
+
+    const hypot = dist(b.x - a.x, b.y - a.y);
+    const opp = dist(c.x - b.x, c.y - b.y);
+    const adj = dist(a.x - c.x, a.y - c.y);
+    const theta = Math.atan2(b.y - a.y, b.x - a.x) - shift;
+    
+    if (draw) {
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(c.x, c.y);
+      ctx.closePath();
+      ctx.stroke();
+    
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(anchor.x, anchor.y, 10, 0, theta);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    return theta;
+  }
+
+
+  rect(rectangle);
+  updateStats();
+  $canvas.onmousedown = ({ offsetX, offsetY }) => {
+    ctx.save();
+      ctx.translate(anchor.x, anchor.y)
+      ctx.rotate(angle);
+      ctx.translate(-anchor.x, -anchor.y)
+      isDragging = ctx.isPointInPath(getAnchorPath(), offsetX, offsetY);
+    ctx.restore();
+  }
+  $canvas.onmouseup = () => {
+    isDragging = false;
+    ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+    ctx.save();
+      ctx.translate(anchor.x, anchor.y)
+      ctx.rotate(angle);
+      ctx.translate(-anchor.x, -anchor.y)
+      rect(rectangle);
+      ctx.restore();
+      updateStats();
+  }
+  $canvas.onmousemove = ({ offsetX, offsetY }) => {
+    mousePos.x = offsetX;
+    mousePos.y = offsetY;
+    if (isDragging) {
+      ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+      angle = trangulate(mousePos.x, mousePos.y, false);
+
+      ctx.save();
+      ctx.translate(anchor.x, anchor.y)
+      ctx.rotate(angle);
+      ctx.translate(-anchor.x, -anchor.y)
+      rect(rectangle);
+      ctx.restore();
+    
+      trangulate(offsetX, offsetY, true);
+      updateStats();
+    }
+  }
+
+}
+
+const ctx = visualization.getContext('2d');
 
 const drawPoint = ({x, y}, color, label) => {
   ctx.save();
@@ -90,7 +247,7 @@ console.log('prooving the Pythagorean theorem');
 console.log('adjacent ** 2 + opposite ** 2, hypotenuse ** 2', adjacent ** 2 + opposite ** 2, hypotenuse ** 2);
 console.log('adjacent ** 2 + opposite ** 2 === hypotenuse ** 2', adjacent ** 2 + opposite ** 2 === hypotenuse ** 2);
 
-
+rotate();
 </script>
 </body>
 </html>
